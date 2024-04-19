@@ -1,0 +1,40 @@
+task: Davis
+drug_seq_featurizer: MorganFeaturizer
+drug_struc_featurizer: GraphMVPFeaturizer
+GraphMVPName: GraphMVP
+target_seq_featurizer: ProtBertFeaturizer
+# target_struc_featurizer: DoGsiteFeaturizer
+
+model_architecture: DTAPredictor
+
+# Model Parameters
+drug_dim: 256
+target_dim: 1280
+h_dim: 128
+n_heads: 6
+
+# Parameters of protein structure encoder
+max_nodes: 1000
+struc_encoder_layer_num: 3     
+node_in_dim: [6, 3]  
+node_h_dim: [128, 16]
+edge_in_dim: [32, 1]
+edge_h_dim: [32, 1]
+struc_dropout: 0.4
+
+# Parameters of training
+tops: top3
+epochs: 2
+batch_size: 32
+gradient_accumulation: 8
+learning_rate: 0.001                #1e-4
+weight_decay: 0.0001
+decay_interval: 5
+lr_decay: 0.95
+replicate: 0
+device: 0
+verbosity: 3
+shuffle: False
+num_workers: 0
+domain: True
+# checkpoint: /home/inspur/zl409100220027/Pre_Train_DTA/models/model--2023-12-10-22:37:41.pth

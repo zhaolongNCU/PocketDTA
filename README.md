@@ -2,9 +2,7 @@
 PocketDTA: an advanced multimodal architecture for enhanced prediction of drug-target affinity from 3D structural data of target binding pockets
 
 ## Architecture
-<p align="center">
-<img src="https://github.com/zhaolongNCU/PocketDTA/blob/main/PocketDTA.jpg" align="middle" height="80%" width="80%" />
-</p>
+!(https://github.com/zhaolongNCU/PocketDTA/blob/main/PocketDTA.jpg)
 
 ## Installation
 First, you need to clone our code to your operating system.

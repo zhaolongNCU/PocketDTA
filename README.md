@@ -38,7 +38,7 @@ pip install requirements.txt
 where the requirements.txt file is already given in the code.
 Furthermore, our code is based on python 3.7 and CUDA 11.7 and is used on a linux system configured with an NVIDIA A800-80G PCIE GPU and an Intel_5318Y 2.1GHz CPU. Note that while our code does not require a large amount of running memory, it is best to use more than 24G of RAM if you need to run it.
 ## Dataset
-The two benchmark datasets Davis and KIBA have been placed in the dataset folder `process.csv`, and each folder also includes the `GraphMVP.pth` pre-training model parameter file and the top1-top3 target-binding pockets of 3-dimensional information`.pickle` file.The target 3D structure `.pdb files` for the two benchmark datasets, along with the first three pocket `.pdb files`, are available for download on Google Cloud Drive.
+The two benchmark datasets Davis and KIBA have been placed in the dataset folder `process.csv`, and each folder also includes the `GraphMVP.pth` pre-training model parameter file and the top1-top3 target-binding pockets of 3-dimensional information`.pickle` file.The target 3D structure `.pdb files` for the two benchmark datasets, along with the first three pocket `.pdb files`, are available for download on Google Cloud Drive !(https://drive.google.com/drive/folders/1qJXsxkTSgwPSTpu-XmIUh2rD2jJ1KuGQ).
 ## pre-trained model
 Since the parameter files for the other pre-trained models are rather large, we will not give them here, you can download them according to the link below and save them to the appropriate location in the PocketDTA folder.
 

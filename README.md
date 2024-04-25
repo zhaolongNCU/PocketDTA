@@ -1,5 +1,5 @@
 # PocketDTA
-PocketDTA: an advanced multimodal architecture for enhanced prediction of drug-target affinity from 3D structural data of target binding pockets
+PocketDTA: an advanced multimodal architecture for enhanced prediction of drug-target affinity from 3D structural data of target binding pockets.
 
 ## Architecture
 ![PocketDTA](https://github.com/zhaolongNCU/PocketDTA/blob/main/PocketDTA.jpg)

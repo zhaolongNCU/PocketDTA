@@ -1,5 +1,7 @@
 # PocketDTA
 PocketDTA: an advanced multimodal architecture for enhanced prediction of drug-target affinity from 3D structural data of target binding pockets.
+Motivation: Accurately predicting the drug-target binding affinity (DTA) is crucial to drug discovery and repurposing. Although deep learning has been widely used in this field, it still faces challenges with insufficient generalization performance, inadequate use of 3D information and poor interpretability. 
+Results: To alleviate these problems, we developed the PocketDTA model. This model enhances the generalization performance by pre-trained models ESM-2 and GraphMVP. It ingeniously handles top-3 target binding pockets and drug 3D infor-mation through customized GVP-GNN Layers and GraphMVP-Decoder. Additionally, it employs a bilinear attention network to enhance interpretability. Comparative analysis with state-of-the-art methods on the optimized Davis and KIBA datasets reveals that the PocketDTA model exhibits significant performance advantages. Further, ablation stud-ies confirm the effectiveness of the model's components, whereas cold-start experiments illustrate its robust generalization capabilities. In particular, the PocketDTA model has shown significant advantages in identifying key drug functional groups and amino acid residues via molecular docking and literature validation, highlighting its strong potential for interpretability. 
 
 ## Architecture
 ![PocketDTA](https://github.com/zhaolongNCU/PocketDTA/blob/main/PocketDTA.jpg)
@@ -52,4 +54,25 @@ In the meantime you can run the .sh file on a Linux system and train different s
 
 ```
 ./training.sh
+```
+## Ablation study
+**Representation ablation study**
+You can run the .sh file on a Linux system.
+```
+./Ablation.sh
+```
+**Module ablation study**
+
+```
+./Ablation_module.sh
+```
+## Cold study
+```
+./Cold.sh
+```
+## Interpretability analysis
+Firstly you need to change the data to the sample you want to test and then run the code below to get the drug weights atomic counterpart and amino acid residue counterpart weights.
+
+```
+python interaction_weight.py --task Davis --model DTAPredictor_test --r 2 --use-test True
 ```

@@ -1,6 +1,8 @@
 # PocketDTA
 PocketDTA: an advanced multimodal architecture for enhanced prediction of drug-target affinity from 3D structural data of target binding pockets.
+
 Motivation: Accurately predicting the drug-target binding affinity (DTA) is crucial to drug discovery and repurposing. Although deep learning has been widely used in this field, it still faces challenges with insufficient generalization performance, inadequate use of 3D information and poor interpretability. 
+
 Results: To alleviate these problems, we developed the PocketDTA model. This model enhances the generalization performance by pre-trained models ESM-2 and GraphMVP. It ingeniously handles top-3 target binding pockets and drug 3D infor-mation through customized GVP-GNN Layers and GraphMVP-Decoder. Additionally, it employs a bilinear attention network to enhance interpretability. Comparative analysis with state-of-the-art methods on the optimized Davis and KIBA datasets reveals that the PocketDTA model exhibits significant performance advantages. Further, ablation stud-ies confirm the effectiveness of the model's components, whereas cold-start experiments illustrate its robust generalization capabilities. In particular, the PocketDTA model has shown significant advantages in identifying key drug functional groups and amino acid residues via molecular docking and literature validation, highlighting its strong potential for interpretability. 
 
 ## Architecture

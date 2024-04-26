@@ -317,6 +317,111 @@ class DTAPredictor(nn.Module):
 
         return affinity.squeeze(-1)
 
+class DTAPredictor_test(nn.Module):
+    def __init__(self, drug_struc_encoder,target_seq_dim,target_struc_encoder,
+                 drug_seq_dim,drug_dim,target_dim,gvp_output_dim,h_dim,n_heads,
+                 use_drug_seq, use_drug_struc, use_target_seq, use_target_struc):
+        super().__init__()
+        self.use_drug_seq = use_drug_seq
+        self.use_drug_struc = use_drug_struc
+        self.use_target_seq = use_target_seq
+        self.use_target_struc = use_target_struc
+        self.h_dim = h_dim
+        self.drug_seq_Linear = nn.Sequential(nn.Linear(drug_seq_dim,512),nn.ReLU(),nn.Linear(512,drug_dim))
+        self.drug_struc_Linear = drug_struc_encoder
+        self.target_seq_Linear = nn.Sequential(nn.Linear(target_seq_dim,256),nn.ReLU(),nn.Linear(256,target_dim))       
+        #self.target_seq_ln = nn.LayerNorm(128*2)
+        self.target_struc = target_struc_encoder
+        self.target_struc_Linear = nn.Sequential(nn.Linear(gvp_output_dim,128),nn.ReLU(),nn.Linear(128,target_dim),)          
+        self.drug_target_fusion = weight_norm(BANLayer(v_dim=drug_dim, q_dim=target_dim, h_dim=h_dim, h_out=n_heads, k=3),
+                                              name='h_mat', dim=None)
+        self.affinity_layer = MLPDecoder(h_dim,1024,256,1)
+
+    def make_masks(self, proteins_len, pockets_len,compounds_len, protein_max_len, pocket_max_len, compound_max_len):
+        N = len(proteins_len)  # batch size
+        protein_mask = torch.zeros((N, protein_max_len))
+        pocket_mask = torch.zeros((N,pocket_max_len))
+        compound_mask = torch.zeros((N, compound_max_len))
+        for i in range(N):
+            protein_mask[i, :proteins_len[i]] = 1
+            pocket_mask[i, :pockets_len[i]] = 1
+            compound_mask[i, :compounds_len[i]] = 1
+        protein_mask = protein_mask.unsqueeze(1).unsqueeze(2)     
+        pocket_mask = pocket_mask.unsqueeze(1).unsqueeze(2)       
+        compound_mask = compound_mask.unsqueeze(1).unsqueeze(2)   #
+
+        protein_mask, pocket_mask,compound_mask = protein_mask.to(proteins_len.device), pocket_mask.to(pockets_len.device),compound_mask.to(compounds_len.device)
+        return protein_mask,pocket_mask,compound_mask
+
+    def struc_data_format_change(self, sample_num, sample_len, struc_emb, pro_seq_lens, device):
+        struc_emb_new = None
+        seq_len_1, seq_len_2 = 0, 0
+        for i in range(sample_num):
+            if i == 0:
+                seq_len_1, seq_len_2 = 0, pro_seq_lens[i]
+                seq_len = pro_seq_lens[i]
+                modal2_emb_one = struc_emb[seq_len_1: seq_len_2, :]         
+                pads = torch.zeros((sample_len-seq_len, struc_emb.shape[-1]), dtype=torch.float).to(device) 
+                modal2_emb_one = torch.cat((modal2_emb_one, pads), dim=0)   
+                struc_emb_new = modal2_emb_one.unsqueeze(0)                 
+            else:
+                seq_len_1, seq_len_2 = seq_len_2, seq_len_2+pro_seq_lens[i]
+                seq_len = pro_seq_lens[i]
+                modal2_emb_one = struc_emb[seq_len_1: seq_len_2, :]
+                pads = torch.zeros((sample_len-seq_len, struc_emb.shape[-1]), dtype=torch.float).to(device)
+                modal2_emb_one = torch.cat((modal2_emb_one, pads), dim=0)
+                struc_emb_new = torch.cat((struc_emb_new, modal2_emb_one.unsqueeze(0)), dim=0)
+        struc_emb = struc_emb_new   
+        return struc_emb
+
+    def forward(self, drug_seq_feat, drug_struc_feat, target_seq_feat, target_struc_feat, pockets_len,):
+        device = drug_seq_feat.device
+
+        embeddings = []
+
+        if self.use_drug_seq:
+            drug_seq_emb = self.drug_seq_Linear(drug_seq_feat)  
+            embeddings.append(drug_seq_emb.unsqueeze(1)) 
+        
+        if self.use_drug_struc:
+            drug_struc_emb = self.drug_struc_Linear(drug_struc_feat)  
+            embeddings.append(drug_struc_emb)
+
+        if embeddings:
+            drug_emb = torch.cat(embeddings, dim=1)  
+        else:
+            raise ValueError("At least one drug feature must be used.")
+
+        embeddings = []  
+
+        if self.use_target_seq:
+
+            target_seq_emb = self.target_seq_Linear(target_seq_feat)  
+            embeddings.append(target_seq_emb.unsqueeze(1))  
+
+        if self.use_target_struc:
+            B = drug_seq_feat.size(0)
+            max_pocket_len_batch = torch.max(pockets_len).item()
+            struc_emb = self.target_struc(*target_struc_feat)  
+            target_struc_emb = self.struc_data_format_change(B, max_pocket_len_batch, struc_emb, pockets_len, device)  
+            target_struc_emb = self.target_struc_Linear(target_struc_emb)
+            embeddings.append(target_struc_emb)
+
+
+        if embeddings:
+            target_emb = torch.cat(embeddings, dim=1)  
+        else:
+            raise ValueError("At least one target feature must be used.")
+
+
+        drug_target, att = self.drug_target_fusion(drug_emb, target_emb)  
+
+
+        affinity = self.affinity_layer(drug_target)
+
+        return affinity.squeeze(-1),att
+
+
     def __call__(self, data):
         drug_seq_feat,drug_struc_feat,target_seq_feat,target_struc_feat, gpu_split,device= data
 
@@ -440,7 +545,7 @@ class PredictorGraphMVPAblation(nn.Module):
         # 计算亲和力
         affinity = self.affinity_layer(drug_target)
 
-        return affinity.squeeze(-1),att
+        return affinity.squeeze(-1)
 
     def __call__(self, data):
         drug_seq_feat,drug_struc_feat,target_seq_feat,target_struc_feat, gpu_split,device= data

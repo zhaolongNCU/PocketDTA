@@ -59,6 +59,7 @@ In the meantime you can run the .sh file on a Linux system and train different s
 ```
 ## Ablation study
 **Representation ablation study**
+
 You can run the .sh file on a Linux system.
 ```
 ./Ablation.sh
